@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+.document-body {
+  font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  color: #171717 !important;
+}
+
+.pdf-avoid-break {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+@media print {
+  @page { size: A4 portrait; margin: 15mm 12mm; }
+  body > * { display: none !important; }
+  body { display: block !important; background: #ffffff !important; }
+  #printContainer { display: block !important; }
+}

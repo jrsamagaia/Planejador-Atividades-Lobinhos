@@ -1,0 +1,81 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isEmailAdmin() {
+      return isSignedIn() &&
+             request.auth.token.email != null && (
+               request.auth.token.email == 'jeferson.samagaia@gmail.com' || 
+               request.auth.token.email == 'samagaiajeferson@gmail.com' ||
+               request.auth.token.email == 'alcateia03gelb@gmail.com' ||
+               request.auth.token.email.matches('(?i)^(jeferson\\.samagaia|samagaiajeferson|alcateia03gelb)@gmail\\.com$')
+             );
+    }
+
+    function isUserAdminDoc() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/usuarios/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.perfilNome == 'Administrador';
+    }
+
+    function isAdmin() {
+      return isEmailAdmin() || isUserAdminDoc();
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    match /grupos/{grupoId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /secoes/{secaoId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /perfis/{perfilId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    match /usuarios/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /activities/{activityId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+    }
+
+    match /users/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+      
+      match /{document=**} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    match /test/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
