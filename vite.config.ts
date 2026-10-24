@@ -1,25 +1,13 @@
-import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
-import {defineConfig, loadEnv} from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig(({mode}) => {
-  const env = loadEnv(mode, '.', '');
-  return {
-    plugins: [react(), tailwindcss()],
-    define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-        'html2canvas': 'html2canvas-pro',
-      },
-    },
-    server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
-      hmr: false,
-    },
-  };
+// O front-end (React) é compilado para dist/client e servido pelo Worker como arquivos estáticos.
+// `npm run dev:ui` sobe só a interface e encaminha /api para o `wrangler dev` (porta 8787).
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  root: 'src/app',
+  publicDir: '../../public',
+  build: { outDir: '../../dist/client', emptyOutDir: true },
+  server: { proxy: { '/api': 'http://localhost:8787' } },
 });

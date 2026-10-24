@@ -1,0 +1,43 @@
+# Planejador da Alcateia — Cloudflare Workers + D1 + R2
+# Passo a passo de publicação no README.
+name = "planejador"
+main = "src/worker/index.ts"
+compatibility_date = "2026-09-01"
+
+# Interface (React compilado). Rotas que não são /api/* caem no index.html (SPA).
+[assets]
+directory = "./dist/client"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+# Banco de dados (usuários, planos, biblioteca, configurações)
+[[d1_databases]]
+binding = "DB"
+database_name = "planejador-db"
+database_id = "97c523ef-be2b-407a-aa56-7267c61736cd"
+migrations_dir = "migrations"
+
+# Arquivos da biblioteca (PDFs) — privados, servidos só para quem está logado
+[[r2_buckets]]
+binding = "BIBLIOTECA"
+bucket_name = "planejador-biblioteca"
+
+[vars]
+# Primeiro administrador (criado automaticamente no primeiro acesso)
+ADMIN_EMAIL = "alcateia03gelb@gmail.com"
+# Cloudflare Access (Zero Trust): domínio da equipe e "Application Audience (AUD) Tag"
+ACCESS_TEAM_DOMAIN = ""   # ex.: "geleoes.cloudflareaccess.com"
+ACCESS_AUD = ""
+# Modelos do Gemini, em ordem de preferência (o próximo é usado se o anterior estiver indisponível)
+GEMINI_MODELS = "gemini-flash-latest,gemini-flash-lite-latest"
+# Segredo (NÃO coloque aqui): npx wrangler secret put GEMINI_API_KEY
+
+[observability]
+enabled = true
+
+# Permite importar o esquema SQL como texto (aplicado automaticamente pelo Worker)
+[[rules]]
+type = "Text"
+globs = ["**/*.sql"]
+fallthrough = true

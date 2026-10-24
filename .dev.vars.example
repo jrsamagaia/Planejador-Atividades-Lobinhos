@@ -1,0 +1,5 @@
+# Copie para .dev.vars (nunca vai para o Git).
+# Em desenvolvimento local não há Cloudflare Access: este e-mail é usado como "usuário logado".
+DEV_USER_EMAIL="alcateia03gelb@gmail.com"
+# Chave do Google AI Studio (https://aistudio.google.com/apikey). Sem ela, a geração mostra um aviso.
+GEMINI_API_KEY=""
